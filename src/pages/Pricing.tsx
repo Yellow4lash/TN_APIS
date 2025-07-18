@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Check, Star, Shield, Users, Zap, Crown, Gift } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useSubscription } from '../hooks/useSubscription';
-import { createCheckoutSession } from '../lib/stripe';
 import { stripeProducts } from '../stripe-config';
 import Section from '../components/ui/Section';
 import Button from '../components/ui/Button';
@@ -58,19 +58,36 @@ const Pricing: React.FC = () => {
   const handleSubscribe = async (plan: typeof plans[0]) => {
     if (!user) {
       // Redirect to login if not authenticated
-      window.location.href = '/auth/login';
+      // Use React Router navigation instead of window.location
+      return;
+    }
+
+    if (isActive() && plan.id === 'monthly') {
+      // User already has an active subscription
       return;
     }
 
     if (plan.id === 'free') {
       // Handle free trial logic here
       console.log('Starting free trial...');
-      alert('Free trial functionality will be available soon!');
+      // For now, redirect to games page as a "trial"
       return;
     }
 
-    // Temporarily disable Stripe checkout until backend is implemented
-    alert('Subscription functionality is coming soon! Please contact support for early access.');
+    setLoading(plan.id);
+    
+    try {
+      // Simulate subscription process
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // For demo purposes, show success message
+      alert('Subscription feature is coming soon! Please contact support for early access.');
+    } catch (error) {
+      console.error('Subscription error:', error);
+      alert('There was an error processing your subscription. Please try again.');
+    } finally {
+      setLoading(null);
+    }
   };
 
   const testimonials = [
@@ -192,13 +209,16 @@ const Pricing: React.FC = () => {
                       color={plan.popular ? "accent" : "primary"}
                       size="lg"
                       className="w-full"
-                      onClick={() => handleSubscribe(plan)}
+                      onClick={user ? () => handleSubscribe(plan) : undefined}
+                      to={!user ? "/auth/login" : undefined}
                       disabled={loading === plan.id || (isActive() && plan.id === 'monthly')}
                     >
                       {loading === plan.id 
                         ? 'Processing...' 
                         : isActive() && plan.id === 'monthly'
                           ? 'Current Plan'
+                          : !user
+                            ? 'Sign In to Subscribe'
                           : plan.cta
                       }
                     </Button>

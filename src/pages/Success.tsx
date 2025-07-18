@@ -80,7 +80,7 @@ const Success: React.FC = () => {
                   Monitor your child's learning journey with detailed progress reports
                 </p>
                 <Button color="accent" size="sm" to="/dashboard">
-                  View Dashboard
+                  View Progress
                 </Button>
               </div>
             </div>

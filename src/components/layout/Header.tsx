@@ -96,7 +96,7 @@ const Header: React.FC = () => {
                         className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
                         onClick={() => setIsUserMenuOpen(false)}
                       >
-                        Subscription
+                        My Subscription
                       </Link>
                       <button
                         onClick={handleSignOut}
@@ -173,7 +173,7 @@ const Header: React.FC = () => {
                         className="block text-sm font-medium text-gray-600 hover:text-primary-600"
                         onClick={() => setIsMenuOpen(false)}
                       >
-                        Subscription
+                        My Subscription
                       </Link>
                       <button
                         onClick={() => {

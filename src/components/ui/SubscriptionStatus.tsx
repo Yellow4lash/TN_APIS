@@ -97,7 +97,7 @@ const SubscriptionStatus: React.FC = () => {
         
         {(isPastDue() || isCanceled()) && (
           <Button color="primary" size="sm" to="/pricing">
-            Reactivate
+            Manage Subscription
           </Button>
         )}
       </div>

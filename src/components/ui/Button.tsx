@@ -14,6 +14,8 @@ type ButtonProps = {
   iconPosition?: 'left' | 'right';
   onClick?: () => void;
   animate?: boolean;
+  disabled?: boolean;
+  type?: 'button' | 'submit' | 'reset';
 };
 
 const Button: React.FC<ButtonProps> = ({
@@ -28,6 +30,8 @@ const Button: React.FC<ButtonProps> = ({
   iconPosition = 'right',
   onClick,
   animate = true,
+  disabled = false,
+  type = 'button',
 }) => {
   const baseStyles = 'inline-flex items-center justify-center rounded-full font-medium transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2';
   
@@ -79,7 +83,11 @@ const Button: React.FC<ButtonProps> = ({
   if (to) {
     return (
       <motion.div {...motionProps}>
-        <Link to={to} className={buttonStyles} onClick={onClick}>
+        <Link 
+          to={to} 
+          className={`${buttonStyles} ${disabled ? 'opacity-50 pointer-events-none' : ''}`} 
+          onClick={disabled ? undefined : onClick}
+        >
           {content}
         </Link>
       </motion.div>
@@ -89,7 +97,13 @@ const Button: React.FC<ButtonProps> = ({
   if (href) {
     return (
       <motion.div {...motionProps}>
-        <a href={href} className={buttonStyles} onClick={onClick} target="_blank" rel="noopener noreferrer">
+        <a 
+          href={href} 
+          className={`${buttonStyles} ${disabled ? 'opacity-50 pointer-events-none' : ''}`} 
+          onClick={disabled ? undefined : onClick} 
+          target="_blank" 
+          rel="noopener noreferrer"
+        >
           {content}
         </a>
       </motion.div>
@@ -98,8 +112,10 @@ const Button: React.FC<ButtonProps> = ({
 
   return (
     <motion.button 
-      className={buttonStyles} 
+      type={type}
+      className={buttonStyles}
       onClick={onClick}
+      disabled={disabled}
       {...motionProps}
     >
       {content}
