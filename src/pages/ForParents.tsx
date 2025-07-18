@@ -191,7 +191,7 @@ const ForParents: React.FC = () => {
         </div>
         <div className="text-center mt-12">
           <Button color="secondary" size="lg" icon={<Download className="w-5 h-5" />}>
-            Download Educator Guide
+            Get Started Today
           </Button>
         </div>
       </Section>

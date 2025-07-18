@@ -196,7 +196,7 @@ const Games: React.FC = () => {
             viewport={{ once: true }}
           >
             <Button color="white" size="lg" to="/pricing">
-              Start Free Trial
+              Get Started
             </Button>
           </motion.div>
         </div>

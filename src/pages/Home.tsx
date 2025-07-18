@@ -75,7 +75,7 @@ const Home: React.FC = () => {
               transition={{ duration: 0.7, delay: 0.6 }}
             >
               <Button color="primary" size="lg" icon={<Play className="w-5 h-5" />} to="/pricing">
-                Start Free Trial
+                Get Started
               </Button>
               <Button color="secondary" size="lg" variant="outline">
                 Watch Demo
@@ -236,7 +236,7 @@ const Home: React.FC = () => {
               <AppStoreBadge store="google" />
             </div>
             <Button color="white" size="lg" to="/pricing">
-              Start Free Trial
+              Get Started
             </Button>
           </motion.div>
         </div>
