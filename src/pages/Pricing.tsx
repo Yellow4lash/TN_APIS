@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Check, Star, Shield, Users, Zap, Crown, Gift } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useSubscription } from '../hooks/useSubscription';
-import { stripeProducts } from '../stripe-config';
+import { useXsollaPayment } from '../hooks/useXsollaPayment';
+import { xsollaPlans } from '../lib/xsolla';
 import Section from '../components/ui/Section';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
@@ -13,9 +14,11 @@ import SubscriptionStatus from '../components/ui/SubscriptionStatus';
 const Pricing: React.FC = () => {
   const { user } = useAuth();
   const { subscription, isActive } = useSubscription();
-  const [loading, setLoading] = useState<string | null>(null);
+  const { initiatePayment, loading: paymentLoading, error: paymentError } = useXsollaPayment();
+  const navigate = useNavigate();
+  const [processingPlan, setProcessingPlan] = useState<string | null>(null);
 
-  const monthlyProduct = stripeProducts.find(p => p.id === 'prod_SUPQPlkCJNpdsx');
+  const monthlyPlan = xsollaPlans.monthly;
 
   const plans = [
     {
@@ -36,11 +39,11 @@ const Pricing: React.FC = () => {
     },
     {
       id: 'monthly',
-      name: monthlyProduct?.name || 'Monthly Plan',
-      description: monthlyProduct?.description || 'Full access with monthly flexibility',
-      price: 9.99,
+      name: monthlyPlan.name,
+      description: monthlyPlan.description,
+      price: monthlyPlan.amount,
       duration: 'per month',
-      priceId: monthlyProduct?.priceId,
+      planId: monthlyPlan.planId,
       features: [
         'All 44 educational games',
         'Detailed progress reports',
@@ -57,8 +60,7 @@ const Pricing: React.FC = () => {
 
   const handleSubscribe = async (plan: typeof plans[0]) => {
     if (!user) {
-      // Redirect to login if not authenticated
-      // Use React Router navigation instead of window.location
+      navigate('/auth/login');
       return;
     }
 
@@ -68,25 +70,28 @@ const Pricing: React.FC = () => {
     }
 
     if (plan.id === 'free') {
-      // Handle free trial logic here
-      console.log('Starting free trial...');
-      // For now, redirect to games page as a "trial"
+      // For free trial, redirect to games page
+      navigate('/games');
       return;
     }
 
-    setLoading(plan.id);
+    setProcessingPlan(plan.id);
     
     try {
-      // Simulate subscription process
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // For demo purposes, show success message
-      alert('Subscription feature is coming soon! Please contact support for early access.');
+      if (plan.planId) {
+        await initiatePayment(plan.planId, plan.price);
+        
+        // Payment successful, redirect to success page
+        navigate('/success');
+      }
     } catch (error) {
-      console.error('Subscription error:', error);
-      alert('There was an error processing your subscription. Please try again.');
+      console.error('Payment error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Payment failed';
+      
+      // Show error to user
+      alert(`Payment failed: ${errorMessage}`);
     } finally {
-      setLoading(null);
+      setProcessingPlan(null);
     }
   };
 
@@ -211,9 +216,9 @@ const Pricing: React.FC = () => {
                       className="w-full"
                       onClick={user ? () => handleSubscribe(plan) : undefined}
                       to={!user ? "/auth/login" : undefined}
-                      disabled={loading === plan.id || (isActive() && plan.id === 'monthly')}
+                      disabled={processingPlan === plan.id || paymentLoading || (isActive() && plan.id === 'monthly')}
                     >
-                      {loading === plan.id 
+                      {processingPlan === plan.id || (paymentLoading && processingPlan === plan.id)
                         ? 'Processing...' 
                         : isActive() && plan.id === 'monthly'
                           ? 'Current Plan'
@@ -228,6 +233,17 @@ const Pricing: React.FC = () => {
             ))}
           </div>
         </div>
+        
+        {/* Payment Error Display */}
+        {paymentError && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="max-w-md mx-auto mt-8 bg-error-50 border border-error-200 text-error-700 px-4 py-3 rounded-lg"
+          >
+            <p className="text-center">{paymentError}</p>
+          </motion.div>
+        )}
       </Section>
 
       {/* Features Comparison */}
@@ -360,7 +376,7 @@ const Pricing: React.FC = () => {
                 <Shield className="w-8 h-8" />
               </div>
               <h3 className="font-bold text-lg mb-2">Secure Payments</h3>
-              <p className="opacity-90">All payments processed securely through Stripe</p>
+              <p className="opacity-90">All payments processed securely through Xsolla</p>
             </div>
             <div className="text-center">
               <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">

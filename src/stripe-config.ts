@@ -1,25 +1,27 @@
-export interface StripeProduct {
+export interface PaymentProduct {
   id: string;
-  priceId: string;
+  planId: string;
   name: string;
   description: string;
-  mode: 'subscription' | 'payment';
+  amount: number;
+  currency: string;
 }
 
-export const stripeProducts: StripeProduct[] = [
+export const paymentProducts: PaymentProduct[] = [
   {
-    id: 'prod_SUPQPlkCJNpdsx',
-    priceId: 'price_1RZQbHFxGQKjBg4cpa61sprd',
+    id: 'monthly_plan',
+    planId: 'gOw8NQR7',
     name: 'Monthly Plan',
+    amount: 4.99,
+    currency: 'USD',
     description: 'All 44 educational games, Detailed progress reports, Offline game access, Priority customer support',
-    mode: 'subscription'
   }
 ];
 
-export const getProductByPriceId = (priceId: string): StripeProduct | undefined => {
-  return stripeProducts.find(product => product.priceId === priceId);
+export const getProductByPlanId = (planId: string): PaymentProduct | undefined => {
+  return paymentProducts.find(product => product.planId === planId);
 };
 
-export const getProductById = (id: string): StripeProduct | undefined => {
-  return stripeProducts.find(product => product.id === id);
+export const getProductById = (id: string): PaymentProduct | undefined => {
+  return paymentProducts.find(product => product.id === id);
 };
