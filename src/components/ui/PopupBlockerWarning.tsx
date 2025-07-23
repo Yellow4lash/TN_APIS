@@ -83,11 +83,10 @@ const PopupBlockerWarning: React.FC<PopupBlockerWarningProps> = ({
           >
             Cancel
           </Button>
-      </div>
+        </div>
+      </motion.div>
     </motion.div>
   );
 };
 
 export default PopupBlockerWarning;
-  )
-}
