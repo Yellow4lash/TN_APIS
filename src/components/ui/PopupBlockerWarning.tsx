@@ -89,3 +89,5 @@ const PopupBlockerWarning: React.FC<PopupBlockerWarningProps> = ({
 };
 
 export default PopupBlockerWarning;
+  )
+}
