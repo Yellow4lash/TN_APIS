@@ -83,7 +83,6 @@ const PopupBlockerWarning: React.FC<PopupBlockerWarningProps> = ({
           >
             Cancel
           </Button>
-        </div>
       </div>
     </motion.div>
   );
