@@ -16,10 +16,17 @@ export const useXsollaPayment = () => {
     setError(null);
 
     try {
+      console.log('Initiating Xsolla payment for plan:', planId, 'amount:', amount);
+
+      // Check if popups are blocked before attempting payment
+      if (xsollaService.isPopupBlocked()) {
+        throw new Error('Popup blocker is preventing the payment window from opening. Please disable your popup blocker and try again.');
+      }
+
       const paymentRequest: XsollaPaymentRequest = {
         user: {
           id: user.email,
-          country: 'US' // You can get this from user profile or IP geolocation
+          country: 'US'
         },
         purchase: {
           planId,
@@ -32,59 +39,118 @@ export const useXsollaPayment = () => {
         }
       };
 
+      console.log('Payment request:', paymentRequest);
+
       const { paymentUrl } = await xsollaService.createPaymentSession(paymentRequest);
+      console.log('Payment URL received:', paymentUrl);
       
       // Open payment window
       const paymentWindow = xsollaService.openPaymentWindow(paymentUrl);
       
       if (!paymentWindow) {
-        throw new Error('Failed to open payment window. Please check your popup blocker settings.');
+        throw new Error('Failed to open payment window. Please check your popup blocker settings and try again.');
       }
+
+      console.log('Payment window opened, waiting for completion...');
 
       // Listen for payment completion
       return new Promise<boolean>((resolve, reject) => {
-        const checkClosed = setInterval(() => {
-          if (paymentWindow.closed) {
-            clearInterval(checkClosed);
-            // In a real implementation, you would verify the payment status
-            // For now, we'll assume success if the window was closed
+        let isResolved = false;
+
+        const resolveOnce = (success: boolean, error?: string) => {
+          if (isResolved) return;
+          isResolved = true;
+          
+          if (success) {
+            console.log('Payment completed successfully');
             resolve(true);
+          } else {
+            console.error('Payment failed:', error);
+            reject(new Error(error || 'Payment failed'));
+          }
+        };
+
+        // Check if window is closed (user cancelled or completed)
+        const checkClosed = setInterval(() => {
+          try {
+            if (paymentWindow.closed) {
+              clearInterval(checkClosed);
+              // If window closed and no other resolution, assume success
+              // In production, you should verify payment status with your backend
+              if (!isResolved) {
+                console.log('Payment window closed, assuming success');
+                resolveOnce(true);
+              }
+            }
+          } catch (error) {
+            console.error('Error checking window status:', error);
+            clearInterval(checkClosed);
+            if (!isResolved) {
+              resolveOnce(false, 'Error monitoring payment window');
+            }
           }
         }, 1000);
 
         // Listen for messages from the payment window
         const messageListener = (event: MessageEvent) => {
-          if (event.origin !== 'https://sandbox-secure.xsolla.com') {
+          console.log('Received message from payment window:', event);
+          
+          // Only accept messages from Xsolla domain
+          if (!event.origin.includes('xsolla.com')) {
+            console.log('Ignoring message from non-Xsolla origin:', event.origin);
             return;
           }
 
-          if (event.data.type === 'payment_success') {
-            clearInterval(checkClosed);
-            window.removeEventListener('message', messageListener);
-            paymentWindow.close();
-            resolve(true);
-          } else if (event.data.type === 'payment_error') {
-            clearInterval(checkClosed);
-            window.removeEventListener('message', messageListener);
-            paymentWindow.close();
-            reject(new Error(event.data.message || 'Payment failed'));
+          try {
+            const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+            
+            if (data.type === 'payment_success' || data.status === 'success') {
+              clearInterval(checkClosed);
+              window.removeEventListener('message', messageListener);
+              paymentWindow.close();
+              resolveOnce(true);
+            } else if (data.type === 'payment_error' || data.status === 'error') {
+              clearInterval(checkClosed);
+              window.removeEventListener('message', messageListener);
+              paymentWindow.close();
+              resolveOnce(false, data.message || 'Payment failed');
+            }
+          } catch (parseError) {
+            console.error('Error parsing message data:', parseError);
           }
         };
 
         window.addEventListener('message', messageListener);
 
-        // Timeout after 10 minutes
-        setTimeout(() => {
+        // Timeout after 15 minutes
+        const timeout = setTimeout(() => {
           clearInterval(checkClosed);
           window.removeEventListener('message', messageListener);
           if (!paymentWindow.closed) {
             paymentWindow.close();
           }
-          reject(new Error('Payment timeout'));
-        }, 600000);
+          if (!isResolved) {
+            resolveOnce(false, 'Payment timeout - please try again');
+          }
+        }, 900000); // 15 minutes
+
+        // Clean up timeout if resolved early
+        const originalResolve = resolve;
+        const originalReject = reject;
+        
+        resolve = (value) => {
+          clearTimeout(timeout);
+          originalResolve(value);
+        };
+        
+        reject = (reason) => {
+          clearTimeout(timeout);
+          originalReject(reason);
+        };
       });
 
     } catch (err) {
+      console.error('Payment initiation error:', err);
       const errorMessage = err instanceof Error ? err.message : 'Payment failed';
       setError(errorMessage);
       throw err;
@@ -93,8 +159,13 @@ export const useXsollaPayment = () => {
     }
   };
 
+  const checkPopupBlocker = () => {
+    return xsollaService.isPopupBlocked();
+  };
+
   return {
     initiatePayment,
+    checkPopupBlocker,
     loading,
     error
   };

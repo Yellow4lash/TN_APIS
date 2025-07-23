@@ -10,13 +10,17 @@ import Section from '../components/ui/Section';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import SubscriptionStatus from '../components/ui/SubscriptionStatus';
+import PopupBlockerWarning from '../components/ui/PopupBlockerWarning';
 
 const Pricing: React.FC = () => {
   const { user } = useAuth();
   const { subscription, isActive } = useSubscription();
-  const { initiatePayment, loading: paymentLoading, error: paymentError } = useXsollaPayment();
+  const { initiatePayment, checkPopupBlocker, loading: paymentLoading, error: paymentError } = useXsollaPayment();
   const navigate = useNavigate();
   const [processingPlan, setProcessingPlan] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [showPopupWarning, setShowPopupWarning] = useState(false);
+  const [pendingPlan, setPendingPlan] = useState<typeof plans[0] | null>(null);
 
   const monthlyPlan = xsollaPlans.monthly;
 
@@ -75,13 +79,22 @@ const Pricing: React.FC = () => {
       return;
     }
 
+    // Check popup blocker before attempting payment
+    if (checkPopupBlocker()) {
+      setPendingPlan(plan);
+      setShowPopupWarning(true);
+      return;
+    }
+
     setProcessingPlan(plan.id);
     
     try {
       if (plan.planId) {
+        console.log('Starting payment process for plan:', plan.planId);
         await initiatePayment(plan.planId, plan.price);
         
         // Payment successful, redirect to success page
+        console.log('Payment successful, redirecting to success page');
         navigate('/success');
       }
     } catch (error) {
@@ -89,9 +102,17 @@ const Pricing: React.FC = () => {
       const errorMessage = error instanceof Error ? error.message : 'Payment failed';
       
       // Show error to user
-      alert(`Payment failed: ${errorMessage}`);
+      setError(errorMessage);
     } finally {
       setProcessingPlan(null);
+    }
+  };
+
+  const handleRetryPayment = async () => {
+    setShowPopupWarning(false);
+    if (pendingPlan) {
+      await handleSubscribe(pendingPlan);
+      setPendingPlan(null);
     }
   };
 
@@ -235,16 +256,34 @@ const Pricing: React.FC = () => {
         </div>
         
         {/* Payment Error Display */}
-        {paymentError && (
+        {(paymentError || error) && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="max-w-md mx-auto mt-8 bg-error-50 border border-error-200 text-error-700 px-4 py-3 rounded-lg"
           >
-            <p className="text-center">{paymentError}</p>
+            <p className="text-center">{paymentError || error}</p>
+            <button 
+              onClick={() => {
+                setError(null);
+              }}
+              className="mt-2 text-sm text-error-600 hover:text-error-800 underline"
+            >
+              Dismiss
+            </button>
           </motion.div>
         )}
       </Section>
+
+      {/* Popup Blocker Warning */}
+      <PopupBlockerWarning
+        isVisible={showPopupWarning}
+        onClose={() => {
+          setShowPopupWarning(false);
+          setPendingPlan(null);
+        }}
+        onRetry={handleRetryPayment}
+      />
 
       {/* Features Comparison */}
       <Section 

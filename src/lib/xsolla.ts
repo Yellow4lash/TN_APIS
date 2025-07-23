@@ -1,6 +1,7 @@
 export interface XsollaConfig {
   projectId: number;
   sandboxUrl: string;
+  accessToken: string;
 }
 
 export interface XsollaUser {
@@ -25,7 +26,8 @@ export interface XsollaPaymentRequest {
 
 const XSOLLA_CONFIG: XsollaConfig = {
   projectId: 286930,
-  sandboxUrl: 'https://sandbox-secure.xsolla.com/paystation2/'
+  sandboxUrl: 'https://sandbox-secure.xsolla.com/paystation2/',
+  accessToken: 'gauckJuWleHPThgMwCLCLVOVd9J738AM_lc_en_bg_FFFFFF_tb_3D46F5'
 };
 
 class XsollaService {
@@ -37,42 +39,12 @@ class XsollaService {
 
   async createPaymentSession(request: XsollaPaymentRequest): Promise<{ paymentUrl: string }> {
     try {
-      // In a real implementation, this would call your backend API
-      // which would then communicate with Xsolla's API to get an access token
+      console.log('Creating Xsolla payment session with request:', request);
       
-      // For now, we'll construct the payment URL directly using the sandbox setup
-      const paymentData = {
-        user: {
-          country: { value: request.user.country || "US" },
-          id: { 
-            value: request.user.id, 
-            allow_modify: false, 
-            hidden: true 
-          }
-        },
-        settings: {
-          language: request.settings?.language || "en",
-          project_id: this.config.projectId
-        },
-        purchase: {
-          checkout: {
-            amount: request.purchase.amount,
-            currency: request.purchase.currency
-          },
-          subscription: {
-            plan_id: request.purchase.planId
-          }
-        }
-      };
-
-      // In production, you would get this access_token from your backend
-      // For sandbox testing, we'll use a placeholder
-      const accessToken = "gauckJuWleHPThgMwCLCLVOVd9J738AM_lc_en_bg_FFFFFF_tb_3D46F5";
+      // Construct the payment URL with the access token
+      const paymentUrl = `${this.config.sandboxUrl}?access_token=${this.config.accessToken}`;
       
-      const paymentUrl = `${this.config.sandboxUrl}?access_token=${accessToken}`;
-      
-      console.log('Xsolla Payment Data:', paymentData);
-      console.log('Payment URL:', paymentUrl);
+      console.log('Generated payment URL:', paymentUrl);
       
       return { paymentUrl };
     } catch (error) {
@@ -81,26 +53,65 @@ class XsollaService {
     }
   }
 
-  async getAccessToken(paymentRequest: XsollaPaymentRequest): Promise<string> {
-    // This should be implemented on your backend
-    // It would call Xsolla's API to get an access token
-    // For sandbox testing, we return the provided token
-    return "gauckJuWleHPThgMwCLCLVOVd9J738AM_lc_en_bg_FFFFFF_tb_3D46F5";
+  openPaymentWindow(paymentUrl: string): Window | null {
+    try {
+      console.log('Attempting to open payment window with URL:', paymentUrl);
+      
+      // Calculate center position
+      const width = 800;
+      const height = 600;
+      const left = Math.max(0, (window.screen.width - width) / 2);
+      const top = Math.max(0, (window.screen.height - height) / 2);
+      
+      const windowFeatures = [
+        `width=${width}`,
+        `height=${height}`,
+        `left=${left}`,
+        `top=${top}`,
+        'resizable=yes',
+        'scrollbars=yes',
+        'status=yes',
+        'toolbar=no',
+        'menubar=no',
+        'location=no'
+      ].join(',');
+      
+      console.log('Opening window with features:', windowFeatures);
+      
+      const paymentWindow = window.open(
+        paymentUrl,
+        'XsollaPayment',
+        windowFeatures
+      );
+      
+      if (!paymentWindow) {
+        console.error('Failed to open payment window - likely blocked by popup blocker');
+        return null;
+      }
+      
+      // Focus the payment window
+      paymentWindow.focus();
+      
+      console.log('Payment window opened successfully');
+      return paymentWindow;
+    } catch (error) {
+      console.error('Error opening payment window:', error);
+      return null;
+    }
   }
 
-  openPaymentWindow(paymentUrl: string): Window | null {
-    const width = 800;
-    const height = 600;
-    const left = (window.screen.width - width) / 2;
-    const top = (window.screen.height - height) / 2;
-    
-    const paymentWindow = window.open(
-      paymentUrl,
-      'XsollaPayment',
-      `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
-    );
-    
-    return paymentWindow;
+  // Helper method to check if popups are blocked
+  isPopupBlocked(): boolean {
+    try {
+      const testWindow = window.open('', 'test', 'width=1,height=1');
+      if (testWindow) {
+        testWindow.close();
+        return false;
+      }
+      return true;
+    } catch (error) {
+      return true;
+    }
   }
 }
 
