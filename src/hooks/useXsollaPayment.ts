@@ -2,6 +2,13 @@ import { useState } from 'react';
 import { useAuth } from './useAuth';
 import { xsollaService, XsollaPaymentRequest } from '../lib/xsolla';
 
+export class PopupBlockerError extends Error {
+  constructor(message: string = 'Popup blocker is preventing the payment window from opening. Please disable your popup blocker and try again.') {
+    super(message);
+    this.name = 'PopupBlockerError';
+  }
+}
+
 export const useXsollaPayment = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -20,7 +27,7 @@ export const useXsollaPayment = () => {
 
       // Check if popups are blocked before attempting payment
       if (xsollaService.isPopupBlocked()) {
-        throw new Error('Popup blocker is preventing the payment window from opening. Please disable your popup blocker and try again.');
+        throw new PopupBlockerError();
       }
 
       const paymentRequest: XsollaPaymentRequest = {

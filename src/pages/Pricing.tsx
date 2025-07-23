@@ -4,7 +4,7 @@ import { Check, Star, Shield, Users, Zap, Crown, Gift } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useSubscription } from '../hooks/useSubscription';
-import { useXsollaPayment } from '../hooks/useXsollaPayment';
+import { useXsollaPayment, PopupBlockerError } from '../hooks/useXsollaPayment';
 import { xsollaPlans } from '../lib/xsolla';
 import Section from '../components/ui/Section';
 import Button from '../components/ui/Button';
@@ -79,13 +79,6 @@ const Pricing: React.FC = () => {
       return;
     }
 
-    // Check popup blocker before attempting payment
-    if (checkPopupBlocker()) {
-      setPendingPlan(plan);
-      setShowPopupWarning(true);
-      return;
-    }
-
     setProcessingPlan(plan.id);
     
     try {
@@ -99,10 +92,16 @@ const Pricing: React.FC = () => {
       }
     } catch (error) {
       console.error('Payment error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Payment failed';
       
-      // Show error to user
-      setError(errorMessage);
+      if (error instanceof PopupBlockerError) {
+        // Show popup blocker warning
+        setPendingPlan(plan);
+        setShowPopupWarning(true);
+      } else {
+        // Show generic error
+        const errorMessage = error instanceof Error ? error.message : 'Payment failed';
+        setError(errorMessage);
+      }
     } finally {
       setProcessingPlan(null);
     }
