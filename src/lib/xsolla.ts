@@ -93,6 +93,7 @@ class XsollaService {
       );
       
       if (!paymentWindow) {
+      }
       if (paymentWindow && !paymentWindow.closed) {
         return null;
         return paymentWindow;
