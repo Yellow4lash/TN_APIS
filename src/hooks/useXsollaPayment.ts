@@ -25,11 +25,6 @@ export const useXsollaPayment = () => {
     try {
       console.log('Initiating Xsolla payment for plan:', planId, 'amount:', amount);
 
-      // Check if popups are blocked before attempting payment
-      if (xsollaService.isPopupBlocked()) {
-        throw new PopupBlockerError();
-      }
-
       const paymentRequest: XsollaPaymentRequest = {
         user: {
           id: user.email,
@@ -55,7 +50,7 @@ export const useXsollaPayment = () => {
       const paymentWindow = xsollaService.openPaymentWindow(paymentUrl);
       
       if (!paymentWindow) {
-        throw new Error('Failed to open payment window. Please check your popup blocker settings and try again.');
+        throw new PopupBlockerError();
       }
 
       console.log('Payment window opened, waiting for completion...');

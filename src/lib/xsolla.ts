@@ -55,6 +55,14 @@ class XsollaService {
 
   openPaymentWindow(paymentUrl: string): Window | null {
     try {
+      // Test popup blocker before opening the actual payment window
+      const testWindow = window.open('', '_blank', 'width=1,height=1');
+      if (!testWindow || testWindow.closed || typeof testWindow.closed === 'undefined') {
+        return null;
+      }
+      testWindow.close();
+      
+      // If test passed, open the actual payment window
       console.log('Attempting to open payment window with URL:', paymentUrl);
       
       // Calculate center position
@@ -85,15 +93,16 @@ class XsollaService {
       );
       
       if (!paymentWindow) {
-        console.error('Failed to open payment window - likely blocked by popup blocker');
+      if (paymentWindow && !paymentWindow.closed) {
+        return null;
+        return paymentWindow;
+      } else {
         return null;
       }
-      
       // Focus the payment window
       paymentWindow.focus();
       
       console.log('Payment window opened successfully');
-      return paymentWindow;
     } catch (error) {
       console.error('Error opening payment window:', error);
       return null;
