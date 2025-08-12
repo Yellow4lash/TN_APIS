@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Check, Star, Shield, Users, Zap, Crown, Gift } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 import { useSubscription } from '../hooks/useSubscription';
 import { useXsollaPayment, PopupBlockerError } from '../hooks/useXsollaPayment';
 import { xsollaPlans } from '../lib/xsolla';
@@ -13,7 +12,6 @@ import SubscriptionStatus from '../components/ui/SubscriptionStatus';
 import PopupBlockerWarning from '../components/ui/PopupBlockerWarning';
 
 const Pricing: React.FC = () => {
-  const { user } = useAuth();
   const { subscription, isActive } = useSubscription();
   const { initiatePayment, checkPopupBlocker, loading: paymentLoading, error: paymentError } = useXsollaPayment();
   const navigate = useNavigate();
@@ -21,6 +19,7 @@ const Pricing: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showPopupWarning, setShowPopupWarning] = useState(false);
   const [pendingPlan, setPendingPlan] = useState<typeof plans[0] | null>(null);
+  const [email, setEmail] = useState('');
 
   const monthlyPlan = xsollaPlans.monthly;
 
@@ -63,13 +62,8 @@ const Pricing: React.FC = () => {
   ];
 
   const handleSubscribe = async (plan: typeof plans[0]) => {
-    if (!user) {
-      navigate('/auth/login');
-      return;
-    }
-
-    if (isActive() && plan.id === 'monthly') {
-      // User already has an active subscription
+    if (!email && plan.id !== 'free') {
+      setError('Please enter your email address first');
       return;
     }
 
@@ -84,11 +78,11 @@ const Pricing: React.FC = () => {
     try {
       if (plan.planId) {
         console.log('Starting payment process for plan:', plan.planId);
-        await initiatePayment(plan.planId, plan.price);
+        await initiatePayment(plan.planId, plan.price, 'USD', email);
         
         // Payment successful, redirect to success page
         console.log('Payment successful, redirecting to success page');
-        navigate('/success');
+        navigate(`/create-account?email=${encodeURIComponent(email)}`);
       }
     } catch (error) {
       console.error('Payment error:', error);
@@ -172,6 +166,45 @@ const Pricing: React.FC = () => {
         </div>
       </Section>
 
+      {/* Email Collection Section */}
+      <Section className="bg-gray-50">
+        <div className="max-w-2xl mx-auto text-center">
+          <motion.h2 
+            className="text-2xl font-display font-bold text-primary-800 mb-6"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            viewport={{ once: true }}
+          >
+            Start Your Learning Journey
+          </motion.h2>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            viewport={{ once: true }}
+            className="bg-white rounded-2xl p-8 shadow-md"
+          >
+            <div className="mb-6">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                Enter your email to get started
+              </label>
+              <input
+                type="email"
+                id="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="your@email.com"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 text-center"
+              />
+            </div>
+            <p className="text-sm text-gray-600 mb-6">
+              We'll use this email for your subscription and account creation
+            </p>
+          </motion.div>
+        </div>
+      </Section>
+
       {/* Pricing Plans */}
       <Section className="bg-white">
         <div className="max-w-5xl mx-auto">
@@ -234,16 +267,13 @@ const Pricing: React.FC = () => {
                       color={plan.popular ? "accent" : "primary"}
                       size="lg"
                       className="w-full"
-                      onClick={user ? () => handleSubscribe(plan) : undefined}
-                      to={!user ? "/auth/login" : undefined}
-                      disabled={processingPlan === plan.id || paymentLoading || (isActive() && plan.id === 'monthly')}
+                      onClick={() => handleSubscribe(plan)}
+                      disabled={processingPlan === plan.id || paymentLoading || (!email && plan.id !== 'free')}
                     >
                       {processingPlan === plan.id || (paymentLoading && processingPlan === plan.id)
                         ? 'Processing...' 
-                        : isActive() && plan.id === 'monthly'
-                          ? 'Current Plan'
-                          : !user
-                            ? 'Sign In to Subscribe'
+                        : (!email && plan.id !== 'free')
+                          ? 'Enter Email Above'
                           : plan.cta
                       }
                     </Button>

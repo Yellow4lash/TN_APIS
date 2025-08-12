@@ -12,11 +12,10 @@ export class PopupBlockerError extends Error {
 export const useXsollaPayment = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { user } = useAuth();
 
-  const initiatePayment = async (planId: string, amount: number, currency: string = 'USD') => {
-    if (!user) {
-      throw new Error('User must be authenticated to make a payment');
+  const initiatePayment = async (planId: string, amount: number, currency: string = 'USD', email?: string) => {
+    if (!email) {
+      throw new Error('Email is required to make a payment');
     }
 
     setLoading(true);
@@ -27,7 +26,7 @@ export const useXsollaPayment = () => {
 
       const paymentRequest: XsollaPaymentRequest = {
         user: {
-          id: user.email,
+          id: email,
           country: 'US'
         },
         purchase: {

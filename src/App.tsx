@@ -10,10 +10,8 @@ import ForParents from './pages/ForParents';
 import Contact from './pages/Contact';
 import Pricing from './pages/Pricing';
 import Login from './pages/Login';
-import Signup from './pages/Signup';
-import ResetPassword from './pages/ResetPassword';
+import CreateAccount from './pages/CreateAccount';
 import Success from './pages/Success';
-import VerifyAccount from './pages/VerifyAccount';
 
 function App() {
   return (
@@ -29,9 +27,7 @@ function App() {
             <Route path="/contact" element={<Contact />} />
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/auth/login" element={<Login />} />
-            <Route path="/auth/signup" element={<Signup />} />
-            <Route path="/reset-pass" element={<ResetPassword />} />
-            <Route path="/verify-account" element={<VerifyAccount />} />
+            <Route path="/create-account" element={<CreateAccount />} />
             <Route path="/success" element={
               <ProtectedRoute>
                 <Success />

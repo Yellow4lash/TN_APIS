@@ -112,10 +112,10 @@ const Header: React.FC = () => {
             ) : (
               <>
                 <Link
-                  to="/auth/login"
+                  to="/pricing"
                   className="text-sm font-medium text-gray-600 hover:text-primary-600 transition-colors"
                 >
-                  Sign In
+                  Get Started
                 </Link>
                 <Button color="primary" size="sm" to="/pricing">
                   Start Free Trial
@@ -189,11 +189,11 @@ const Header: React.FC = () => {
                   ) : (
                     <div className="space-y-4">
                       <Link
-                        to="/auth/login"
+                        to="/pricing"
                         className="block text-sm font-medium text-gray-600 hover:text-primary-600"
                         onClick={() => setIsMenuOpen(false)}
                       >
-                        Sign In
+                        Get Started
                       </Link>
                       <Button color="primary" size="sm" className="w-full" to="/pricing">
                         Start Free Trial
