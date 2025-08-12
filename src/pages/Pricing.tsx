@@ -4,6 +4,7 @@ import { Check, Star, Shield, Users, Zap, Crown, Gift } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useSubscription } from '../hooks/useSubscription';
 import { useXsollaPayment, PopupBlockerError } from '../hooks/useXsollaPayment';
+import { useAuth } from '../hooks/useAuth';
 import { xsollaPlans } from '../lib/xsolla';
 import Section from '../components/ui/Section';
 import Button from '../components/ui/Button';
@@ -14,6 +15,7 @@ import PopupBlockerWarning from '../components/ui/PopupBlockerWarning';
 const Pricing: React.FC = () => {
   const { subscription, isActive } = useSubscription();
   const { initiatePayment, checkPopupBlocker, loading: paymentLoading, error: paymentError } = useXsollaPayment();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [processingPlan, setProcessingPlan] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
