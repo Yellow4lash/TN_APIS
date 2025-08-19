@@ -64,11 +64,22 @@ const Pricing: React.FC = () => {
   ];
 
   const handleSubscribe = async (plan: typeof plans[0]) => {
-    if (!email && plan.id !== 'free') {
-      setError('Please enter your email address first');
-      return;
+    // Validate email for all plans except free trial
+    if (plan.id !== 'free') {
+      if (!email) {
+        setError('Please enter your email address first');
+        return;
+      }
+      
+      // Basic email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        setError('Please enter a valid email address');
+        return;
+      }
     }
 
+    setError(null);
     if (plan.id === 'free') {
       // For free trial, redirect to games page
       navigate('/games');
@@ -189,19 +200,20 @@ const Pricing: React.FC = () => {
           >
             <div className="mb-6">
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                Enter your email to get started
+                Enter your email address to continue
               </label>
               <input
                 type="email"
                 id="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="your@email.com"
+                placeholder="Enter your email address"
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 text-center"
+                required
               />
             </div>
             <p className="text-sm text-gray-600 mb-6">
-              We'll use this email for your subscription and account creation
+              We'll use this email for your subscription and to create your TinyNinza account
             </p>
           </motion.div>
         </div>

@@ -115,10 +115,10 @@ const Header: React.FC = () => {
                   to="/pricing"
                   className="text-sm font-medium text-gray-600 hover:text-primary-600 transition-colors"
                 >
-                  Get Started
+                  Subscribe
                 </Link>
                 <Button color="primary" size="sm" to="/pricing">
-                  Start Free Trial
+                  Get Started
                 </Button>
               </>
             )}
@@ -193,10 +193,10 @@ const Header: React.FC = () => {
                         className="block text-sm font-medium text-gray-600 hover:text-primary-600"
                         onClick={() => setIsMenuOpen(false)}
                       >
-                        Get Started
+                        Subscribe
                       </Link>
                       <Button color="primary" size="sm" className="w-full" to="/pricing">
-                        Start Free Trial
+                        Get Started
                       </Button>
                     </div>
                   )}

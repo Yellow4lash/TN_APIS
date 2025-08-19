@@ -26,10 +26,10 @@ const Success: React.FC = () => {
               <CheckCircle className="w-12 h-12 text-success-600" />
             </div>
             <h1 className="text-4xl md:text-5xl font-display font-bold text-gray-800 mb-4">
-              Welcome to TinyNinza!
+              Welcome to TinyNinza! 🎉
             </h1>
             <p className="text-xl text-gray-600 mb-8">
-              Your subscription is now active. Let the learning adventure begin!
+              Your account is ready and your subscription is active. Let the learning adventure begin!
             </p>
           </motion.div>
 

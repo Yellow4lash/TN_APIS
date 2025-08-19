@@ -125,10 +125,10 @@ const CreateAccount: React.FC = () => {
                 </span>
               </div>
               <h1 className="text-2xl font-display font-bold text-gray-800 mb-2">
-                Create Your Account
+                Complete Your Account Setup
               </h1>
               <p className="text-gray-600">
-                Set up your password to complete your TinyNinza account
+                Your subscription is active! Now create a password to access your TinyNinza account.
               </p>
             </div>
 
@@ -147,7 +147,7 @@ const CreateAccount: React.FC = () => {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                  Email Address
+                  Your Email Address
                 </label>
                 <input
                   type="email"
@@ -157,7 +157,7 @@ const CreateAccount: React.FC = () => {
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed"
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  This email was used for your subscription
+                  This is the email address you used for your subscription
                 </p>
               </div>
 
